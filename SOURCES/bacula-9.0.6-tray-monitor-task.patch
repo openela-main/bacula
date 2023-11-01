@@ -1,0 +1,33 @@
+--- bacula-9.0.6.old/src/qt-console/tray-monitor/task.cpp       2018-01-28 15:19:14.055587280 -0600
++++ bacula-9.0.6/src/qt-console/tray-monitor/task.cpp   2018-01-28 15:18:55.151599308 -0600
+@@ -992,15 +992,15 @@
+     }
+
+     /* cache the file set */
+-    res->bs->fsend(".bvfs_update jobid=%s\n", jobs.toUtf8());
++    res->bs->fsend(".bvfs_update jobid=%s\n", bstrdup(jobs.toUtf8()) );
+     while (get_next_line(res)) {
+         Dmsg2(dbglvl, "<- %d %s\n", res->bs->msglen, curline);
+     }
+
+     if (pathid == 0) {
+-        res->bs->fsend(".bvfs_lsdirs jobid=%s path=\"\"\n", jobs.toUtf8());
++        res->bs->fsend(".bvfs_lsdirs jobid=%s path=\"\"\n", bstrdup(jobs.toUtf8()));
+     } else {
+-        res->bs->fsend(".bvfs_lsdirs jobid=%s pathid=%lld\n", jobs.toUtf8(), pathid);
++        res->bs->fsend(".bvfs_lsdirs jobid=%s pathid=%lld\n", bstrdup(jobs.toUtf8()), pathid);
+     }
+
+     while (get_next_line(res)) {
+@@ -1024,9 +1024,9 @@
+
+     /* then, request files */
+     if (pathid == 0) {
+-        res->bs->fsend(".bvfs_lsfiles jobid=%s path=\"\"\n", jobs.toUtf8());
++        res->bs->fsend(".bvfs_lsfiles jobid=%s path=\"\"\n", bstrdup(jobs.toUtf8()));
+     } else {
+-        res->bs->fsend(".bvfs_lsfiles jobid=%s pathid=%lld\n", jobs.toUtf8(), pathid);
++        res->bs->fsend(".bvfs_lsfiles jobid=%s pathid=%lld\n", bstrdup(jobs.toUtf8()), pathid);
+     }
+
+     while (get_next_line(res)) {
