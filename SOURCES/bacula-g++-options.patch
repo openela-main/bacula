@@ -1,0 +1,15 @@
+diff -Naur bacula-11.0.1.old/autoconf/configure.in bacula-11.0.1/autoconf/configure.in
+--- bacula-11.0.1.old/autoconf/configure.in	2021-02-11 14:09:48.635047858 +0100
++++ bacula-11.0.1/autoconf/configure.in	2021-02-11 14:10:48.026027852 +0100
+@@ -3274,11 +3274,6 @@
+ AC_DEFINE(FDLIBS)
+ 
+ CFLAGS=${CFLAGS--O}
+-
+-if test x$have_gcc = xyes ; then
+-   CPPFLAGS="$CPPFLAGS -x c++ -fno-strict-aliasing -fno-exceptions -fno-rtti"
+-   CFLAGS="$CFLAGS -x c++ -fno-strict-aliasing -fno-exceptions -fno-rtti"
+-fi
+ LDFLAGS=${LDFLAGS--O}
+ CPPFLAGS="$CPPFLAGS"
+ CFLAGS="$CFLAGS"

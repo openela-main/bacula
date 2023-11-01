@@ -1,0 +1,90 @@
+======== Features
+
+- Standard components: director, storage, client, docs, bconsole.
+- Graphical components: bat, bacula-tray-monitor.
+- Tab completion for bconsole.
+- Nagios plugin.
+- HTML/PDF docs.
+- Quick start guides.
+- File Daemon bpipe-fd plugin.
+- POSIX.1e capabilities for File Daemon.
+- GZIP/LZO compression.
+- Static uid/gid of 133 (see "setup" package).
+- SQL libraries needed only by Director and Storage daemons.
+- SQL backend management through the alternatives system.
+
+======== Quick start
+
+Please look at the following files for a quick start with the various database
+backends:
+
+- quickstart_mysql.txt
+- quickstart_postgresql.txt
+- quickstart_sqlite3.txt
+
+======== PostgreSQL, MySQL and SQLite databases
+
+Bacula director supports different databases backends, if you want to switch
+away from the default PostgreSQL one you need to change the "libbaccats" (the
+catalogue library) symlink to the real library.
+
+To change to a different backend, issue the following command:
+
+# alternatives --config libbaccats.so
+
+There are 3 programs which provide 'libbaccats.so'.
+
+  Selection    Command
+-----------------------------------------------
+   1           /usr/lib64/libbaccats-mysql.so
+   2           /usr/lib64/libbaccats-sqlite3.so
+*+ 3           /usr/lib64/libbaccats-postgresql.so
+
+Enter to keep the current selection[+], or type selection number: 1
+
+There is NO need to edit any part in the Bacula Director configuration; for the
+purposes of the database creation steps, the bacula-dir.conf configuration file
+can be left at their default values.
+
+======== Switiching between PostgreSQL, MySQL and SQLite backends
+
+To switch the configured backend to another one, follow the above procedure.
+Again, there's no need to edit the Bacula Director configuration file; the
+catalog resource can be left as is.
+
+Importing and exporting data between the various database formats is up to the
+user. If the database will be re-initialized from scratch, follow the quick
+start guides mentioned above.
+
+======== Upgrading from old Redhat releases
+
+When upgrading from old Redhat releases, the "bacula-libs-sql" package takes
+care of making the appropriate selection for the database backend based on what
+was previously configured on the old system.
+
+The default permissions in the "/etc/bacula" folder have changed; please perform
+the following commands for restoring the permissions for the correct operation
+of the daemons.
+
+# chown -R root:root /etc/bacula
+# chmod 755 /etc/bacula
+# chmod 640 /etc/bacula/*
+# chgrp bacula /etc/bacula/bacula-dir.conf /etc/bacula/query.sql
+
+All the files that are part of the Director configuration (included with @) must
+of course have the same permissions as the main configuration file.
+
+======== Documentation
+
+To see all the available documentation in both HTML and PDF formats, please
+install the "bacula-docs" package.
+
+======== Granting user access to the console
+
+The console configuration files are normally readable only by root for security
+reasons. If you need to grant access to a specific user or group of users to
+the consoles, you can adjust the ACLs on the configuration files. For example:
+
+# setfacl -m u:user:r /etc/bacula/bconsole.conf /etc/bacula/bat.conf
+
+This way the user 'user' can open the console without superuser privileges.

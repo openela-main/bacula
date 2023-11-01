@@ -1,0 +1,43 @@
+diff -Naur bacula-11.0.1.old/src/lib/crypto.c bacula-11.0.1/src/lib/crypto.c
+--- bacula-11.0.1.old/src/lib/crypto.c	2021-02-11 14:08:38.220885976 +0100
++++ bacula-11.0.1/src/lib/crypto.c	2021-02-11 14:08:42.518956898 +0100
+@@ -42,7 +42,7 @@
+  * For OpenSSL version 1.x, EVP_PKEY_encrypt no longer
+  *  exists.  It was not an official API.
+  */
+-#ifdef HAVE_OPENSSLv1
++#if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
+ #define EVP_PKEY_encrypt EVP_PKEY_encrypt_old
+ #define EVP_PKEY_decrypt EVP_PKEY_decrypt_old
+ #endif
+diff -Naur bacula-11.0.1.old/src/lib/tls.c bacula-11.0.1/src/lib/tls.c
+--- bacula-11.0.1.old/src/lib/tls.c	2021-02-11 14:08:38.218885943 +0100
++++ bacula-11.0.1/src/lib/tls.c	2021-02-11 14:08:42.565957674 +0100
+@@ -47,9 +47,6 @@
+ 
+ #include "openssl-compat.h"
+ 
+-/* No anonymous ciphers, no <128 bit ciphers, no export ciphers, no MD5 ciphers */
+-#define TLS_DEFAULT_CIPHERS "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH"
+-
+ /* TLS Context Structure */
+ struct TLS_Context {
+    SSL_CTX *openssl;
+@@ -350,7 +347,7 @@
+       SSL_CTX_set_options(ctx->openssl, SSL_OP_SINGLE_DH_USE);
+    }
+ 
+-   if (SSL_CTX_set_cipher_list(ctx->openssl, TLS_DEFAULT_CIPHERS) != 1) {
++   if (SSL_CTX_set_cipher_list(ctx->openssl, "PROFILE=SYSTEM") != 1) {
+       Jmsg0(NULL, M_ERROR, 0,
+              _("Error setting cipher list, no valid ciphers available\n"));
+       goto err;
+@@ -551,7 +548,7 @@
+          extname = OBJ_nid2sn(OBJ_obj2nid(X509_EXTENSION_get_object(ext)));
+ 
+          if (strcmp(extname, "subjectAltName") == 0) {
+-#ifdef HAVE_OPENSSLv1
++#if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
+             const X509V3_EXT_METHOD *method;
+ #else
+             X509V3_EXT_METHOD *method;
