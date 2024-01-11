@@ -1,0 +1,12 @@
+diff -urNp old/src/qt-console/pages.h new/src/qt-console/pages.h
+--- old/src/qt-console/pages.h	2017-11-21 18:37:16.000000000 +0100
++++ new/src/qt-console/pages.h	2018-02-06 12:37:04.490297821 +0100
+@@ -21,7 +21,7 @@
+ /*
+  *   Dirk Bartley, March 2007
+  */
+-
++#include <QtGlobal>
+ #if QT_VERSION >= 0x050000
+ #include <QtWidgets>
+ #else

@@ -1,0 +1,39 @@
+diff -Naur bacula-9.0.2.old/scripts/bacula-tray-monitor.desktop.in bacula-9.0.2/scripts/bacula-tray-monitor.desktop.in
+--- bacula-9.0.2.old/scripts/bacula-tray-monitor.desktop.in	2017-07-24 15:22:19.884540422 +0200
++++ bacula-9.0.2/scripts/bacula-tray-monitor.desktop.in	2017-07-24 15:37:02.175038149 +0200
+@@ -1,10 +1,9 @@
+ [Desktop Entry]
+ Name=Bacula Monitor
+ Comment=Notification Tray Monitor
+-Icon=/usr/share/pixmaps/bacula-tray-monitor.xpm
++Icon=/usr/share/pixmaps/bacula-tray-monitor.png
+ Exec=@sbindir@/bacula-tray-monitor -c @sysconfdir@/tray-monitor.conf
+ Terminal=false
+ Type=Application
+-Encoding=UTF-8
+ X-Desktop-File-Install-Version=0.3
+-Categories=System;Application;Utility;X-Red-Hat-Base;
++Categories=Utility;
+diff -Naur bacula-9.0.2.old/scripts/bat.desktop.in bacula-9.0.2/scripts/bat.desktop.in
+--- bacula-9.0.2.old/scripts/bat.desktop.in	2017-07-24 15:22:19.884540422 +0200
++++ bacula-9.0.2/scripts/bat.desktop.in	2017-07-24 15:36:22.753301014 +0200
+@@ -5,7 +5,6 @@
+ Exec=@sbindir@/bat -c @sysconfdir@/bat.conf
+ Terminal=false
+ Type=Application
+-Encoding=UTF-8
+ StartupNotify=true
+ X-Desktop-File-Install-Version=0.3
+-Categories=System;Application;Utility;X-Red-Hat-Base;
++Categories=Utility;
+diff -Naur bacula-9.0.2.old/scripts/Makefile.in bacula-9.0.2/scripts/Makefile.in
+--- bacula-9.0.2.old/scripts/Makefile.in	2017-07-24 15:22:19.884540422 +0200
++++ bacula-9.0.2/scripts/Makefile.in	2017-07-24 15:25:03.829605989 +0200
+@@ -67,7 +67,6 @@
+ 	   $(MV) -f ${DESTDIR}${scriptdir}/baculabackupreport ${DESTDIR}${scriptdir}/baculabackupreport.old; \
+ 	fi
+ 	$(INSTALL_SCRIPT) baculabackupreport $(DESTDIR)$(scriptdir)/baculabackupreport
+-	$(INSTALL_SCRIPT) bacula-tray-monitor.desktop $(DESTDIR)$(scriptdir)/bacula-tray-monitor.desktop
+ 	chmod 0644 $(DESTDIR)$(scriptdir)/btraceback.gdb \
+ 		   $(DESTDIR)$(scriptdir)/btraceback.dbx \
+ 		   $(DESTDIR)$(scriptdir)/btraceback.mdb
