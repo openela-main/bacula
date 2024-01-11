@@ -1,0 +1,13 @@
+diff -Naur bacula-11.0.0.old/examples/nagios/check_bacula/Makefile.in bacula-11.0.0/examples/nagios/check_bacula/Makefile.in
+--- bacula-11.0.0.old/examples/nagios/check_bacula/Makefile.in	2021-01-15 14:28:41.415719526 +0100
++++ bacula-11.0.0/examples/nagios/check_bacula/Makefile.in	2021-01-15 15:01:26.371678793 +0100
+@@ -72,7 +72,8 @@
+ 	(cd $(srcdir); $(RMF) Makefile)
+ 
+ install: all
+-	$(LIBTOOL_INSTALL) $(INSTALL_PROGRAM) .libs/check_bacula $(DESTDIR)$(sbindir)/check_bacula
++	$(MKDIR) $(DESTDIR)$(libdir)/nagios/plugins
++	$(LIBTOOL_INSTALL) $(INSTALL_PROGRAM) .libs/check_bacula $(DESTDIR)$(libdir)/nagios/plugins/check_bacula
+ 
+ uninstall:
+ 	(cd $(DESTDIR)$(sbindir); $(RMF) check_bacula)

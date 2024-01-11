@@ -1,0 +1,29 @@
+diff -Naur bacula-11.0.1.old/autoconf/configure.in bacula-11.0.1/autoconf/configure.in
+--- bacula-11.0.1.old/autoconf/configure.in	2021-02-11 14:12:19.547538024 +0100
++++ bacula-11.0.1/autoconf/configure.in	2021-02-11 14:12:25.803641252 +0100
+@@ -3240,20 +3240,11 @@
+    ]
+ )
+ if test x$support_docker = xyes -o x$support_docker = xauto; then
+-   AC_CHECK_PROG(docker_bin, docker, yes, no, "/usr/bin/")
+-   if test x$docker_bin = xyes; then
+-      support_docker=yes
+-      FD_PLUGIN_DIR="$FD_PLUGIN_DIR src/plugins/fd/docker"
+-      PLUGCONFILES="${PLUGCONFILES} src/plugins/fd/docker/Makefile"
+-   else
+-      if test x$support_docker = xyes; then
+-         echo " "
+-         echo "You enabled a Docker Plugin build but 'docker' command not found."
+-         echo " "
+-         exit 1
+-      fi
+-      support_docker=no
+-   fi
++   support_docker=yes
++   FD_PLUGIN_DIR="$FD_PLUGIN_DIR src/plugins/fd/docker"
++   PLUGCONFILES="${PLUGCONFILES} src/plugins/fd/docker/Makefile"
++else
++   support_docker=no
+ fi
+ 
+ AC_SUBST(FD_PLUGIN_DIR)

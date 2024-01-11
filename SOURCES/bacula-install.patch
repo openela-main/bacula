@@ -1,0 +1,48 @@
+diff -Naur bacula-11.0.1.old/autoconf/configure.in bacula-11.0.1/autoconf/configure.in
+--- bacula-11.0.1.old/autoconf/configure.in	2021-02-11 14:11:00.673236537 +0100
++++ bacula-11.0.1/autoconf/configure.in	2021-02-11 14:11:36.910834489 +0100
+@@ -3798,7 +3798,7 @@
+ cd src/qt-console
+ chmod 755 install_conf_file build-depkgs-qt-console
+ cd tray-monitor
+-chmod 755 install_conf_file
++chmod 755 install_conf_file build-depkgs-qt-console
+ cd ${BUILD_DIR}
+ 
+ cd scripts
+diff -Naur bacula-11.0.1.old/examples/nagios/check_bacula/Makefile.in bacula-11.0.1/examples/nagios/check_bacula/Makefile.in
+--- bacula-11.0.1.old/examples/nagios/check_bacula/Makefile.in	2021-02-11 14:09:48.630047776 +0100
++++ bacula-11.0.1/examples/nagios/check_bacula/Makefile.in	2021-02-11 14:11:07.708352620 +0100
+@@ -72,7 +72,7 @@
+ 	(cd $(srcdir); $(RMF) Makefile)
+ 
+ install: all
+-	$(LIBTOOL_INSTALL) $(INSTALL_PROGRAM) check_bacula $(DESTDIR)$(sbindir)/check_bacula
++	$(LIBTOOL_INSTALL) $(INSTALL_PROGRAM) .libs/check_bacula $(DESTDIR)$(sbindir)/check_bacula
+ 
+ uninstall:
+ 	(cd $(DESTDIR)$(sbindir); $(RMF) check_bacula)
+diff -Naur bacula-11.0.1.old/src/qt-console/bat.pro.in bacula-11.0.1/src/qt-console/bat.pro.in
+--- bacula-11.0.1.old/src/qt-console/bat.pro.in	2021-02-11 14:09:48.599047264 +0100
++++ bacula-11.0.1/src/qt-console/bat.pro.in	2021-02-11 14:11:07.742353181 +0100
+@@ -12,7 +12,7 @@
+ 
+ datarootdir = @datarootdir@
+ bins.path = /$(DESTDIR)@sbindir@
+-bins.files = bat
++bins.files = .libs/bat
+ confs.path = /$(DESTDIR)@sysconfdir@
+ confs.commands = ./install_conf_file
+ help.path = /$(DESTDIR)@htmldir@
+diff -Naur bacula-11.0.1.old/src/qt-console/tray-monitor/tray-monitor.pro.in bacula-11.0.1/src/qt-console/tray-monitor/tray-monitor.pro.in
+--- bacula-11.0.1.old/src/qt-console/tray-monitor/tray-monitor.pro.in	2021-02-11 14:09:48.603047330 +0100
++++ bacula-11.0.1/src/qt-console/tray-monitor/tray-monitor.pro.in	2021-02-11 14:11:07.743353198 +0100
+@@ -26,7 +26,7 @@
+ 
+ 
+ bins.path = /$(DESTDIR)@sbindir@
+-bins.files = bacula-tray-monitor
++bins.files = .libs/bacula-tray-monitor
+ confs.path = /$(DESTDIR)@sysconfdir@
+ confs.commands = ./install_conf_file
+ 

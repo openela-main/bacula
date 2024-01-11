@@ -1,0 +1,39 @@
+diff -Naur bacula-11.0.0.old/src/qt-console/bat.pro.in bacula-11.0.0/src/qt-console/bat.pro.in
+--- bacula-11.0.0.old/src/qt-console/bat.pro.in	2021-01-12 12:36:32.639470258 +0100
++++ bacula-11.0.0/src/qt-console/bat.pro.in	2021-01-12 12:39:13.647417778 +0100
+@@ -6,7 +6,7 @@
+ #
+ #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ #
+-CONFIG += qt debug @QWT@
++CONFIG += qt release @QWT@
+ 
+ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+ 
+@@ -15,7 +15,7 @@
+ bins.files = bat
+ confs.path = /$(DESTDIR)@sysconfdir@
+ confs.commands = ./install_conf_file
+-help.path = /$(DESTDIR)@docdir@
++help.path = /$(DESTDIR)@htmldir@
+ help.files = help/*.html images/status.png images/mail-message-new.png
+ 
+ TEMPLATE     = app
+diff -Naur bacula-11.0.0.old/src/qt-console/main.cpp bacula-11.0.0/src/qt-console/main.cpp
+--- bacula-11.0.0.old/src/qt-console/main.cpp	2021-01-12 12:36:32.640470277 +0100
++++ bacula-11.0.0/src/qt-console/main.cpp	2021-01-12 12:39:13.647417778 +0100
+@@ -29,11 +29,11 @@
+ #include <QTranslator>
+ 
+ /*
+- * We need Qt version 4.8.4 or later to be able to comple correctly
++ * We need Qt version 4.6.2 or later to be able to comple correctly
+  */
+-#if QT_VERSION < 0x040804
++#if QT_VERSION < 0x040602
+ #error "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+-#error "You need Qt version 4.8.4 or later to build Bat"
++#error "You need Qt version 4.6.2 or later to build Bat"
+ #error "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+ #endif
+ 

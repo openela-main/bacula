@@ -1,0 +1,296 @@
+Author: Vaclav Dolezal <vdolezal@redhat.com>
+Date:   Mon Aug 12 14:51:39 2019 +0200
+
+    Use functions from OpenSSL for HMAC, MD5 and random bytes
+
+diff -up bacula-11.0.1/src/dird/dird_conf.c.orig bacula-11.0.1/src/dird/dird_conf.c
+--- bacula-11.0.1/src/dird/dird_conf.c.orig	2021-02-05 22:23:44.000000000 +0100
++++ bacula-11.0.1/src/dird/dird_conf.c	2022-02-11 19:43:38.870718113 +0100
+@@ -43,6 +43,10 @@
+ #include "bacula.h"
+ #include "dird.h"
+ 
++#if HAVE_OPENSSL
++# include <openssl/evp.h>
++#endif
++
+ /* Define the first and last resource ID record
+  * types. Note, these should be unique for each
+  * daemon though not a requirement.
+@@ -1783,6 +1787,11 @@ void free_resource(RES *rres, int type)
+          free(res->res_fs.exclude_items);
+       }
+       res->res_fs.num_excludes = 0;
++#if HAVE_OPENSSL
++      EVP_MD_CTX_free(res->res_fs.md5c);
++      res->res_fs.md5c = NULL;
++      res->res_fs.have_MD5 = false;
++#endif
+       break;
+    case R_POOL:
+       if (res->res_pool.pool_type) {
+diff -up bacula-11.0.1/src/dird/dird_conf.h.orig bacula-11.0.1/src/dird/dird_conf.h
+--- bacula-11.0.1/src/dird/dird_conf.h.orig	2021-02-05 22:23:44.000000000 +0100
++++ bacula-11.0.1/src/dird/dird_conf.h	2022-02-11 19:43:38.870718113 +0100
+@@ -25,6 +25,10 @@
+ 
+ /* NOTE:  #includes at the end of this file */
+ 
++#if HAVE_OPENSSL
++# include <openssl/evp.h>
++#endif
++
+ /*
+  * Resource codes -- they must be sequential for indexing
+  */
+@@ -608,7 +612,11 @@ public:
+    INCEXE **exclude_items;
+    int32_t num_excludes;
+    bool have_MD5;                     /* set if MD5 initialized */
++#if HAVE_OPENSSL
++   EVP_MD_CTX *md5c;                  /* MD5 of include/exclude */
++#else
+    struct MD5Context md5c;            /* MD5 of include/exclude */
++#endif
+    char MD5[30];                      /* base 64 representation of MD5 */
+    bool ignore_fs_changes;            /* Don't force Full if FS changed */
+    bool enable_vss;                   /* Enable Volume Shadow Copy */
+diff -up bacula-11.0.1/src/dird/inc_conf.c.orig bacula-11.0.1/src/dird/inc_conf.c
+--- bacula-11.0.1/src/dird/inc_conf.c.orig	2021-02-05 22:23:44.000000000 +0100
++++ bacula-11.0.1/src/dird/inc_conf.c	2022-02-11 19:43:38.870718113 +0100
+@@ -32,6 +32,10 @@
+ #include <regex.h>
+ #endif
+ 
++#if HAVE_OPENSSL
++# include <openssl/evp.h>
++#endif
++
+ /* Forward referenced subroutines */
+ 
+ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass);
+@@ -390,7 +394,17 @@ static void store_newinc(LEX *lc, RES_IT
+    bool options;
+ 
+    if (!res_all.res_fs.have_MD5) {
++#if HAVE_OPENSSL
++      res_all.res_fs.md5c = EVP_MD_CTX_new();
++      if (!res_all.res_fs.md5c
++         || !EVP_DigestInit_ex(res_all.res_fs.md5c, EVP_md5(), NULL)
++      ) {
++         Emsg1(M_ERROR_TERM, 0, "MD5 computation failed: %s\n",
++               ERR_reason_error_string(ERR_peek_last_error()));
++      }
++#else
+       MD5Init(&res_all.res_fs.md5c);
++#endif
+       res_all.res_fs.have_MD5 = true;
+    }
+    bmemset(&res_incexe, 0, sizeof(INCEXE));
+@@ -656,7 +670,13 @@ static void store_fname(LEX *lc, RES_ITE
+          }
+       case T_QUOTED_STRING:
+          if (res_all.res_fs.have_MD5) {
++#if HAVE_OPENSSL
++            if (!EVP_DigestUpdate(res_all.res_fs.md5c, (void *)lc->str, (size_t) lc->str_len))
++               Emsg1(M_ERROR_TERM, 0, "MD5 computation failed: %s\n",
++                     ERR_reason_error_string(ERR_peek_last_error()));
++#else
+             MD5Update(&res_all.res_fs.md5c, (unsigned char *)lc->str, lc->str_len);
++#endif
+          }
+          incexe = &res_incexe;
+          if (incexe->name_list.size() == 0) {
+@@ -699,7 +719,13 @@ static void store_plugin_name(LEX *lc, R
+          }
+       case T_QUOTED_STRING:
+          if (res_all.res_fs.have_MD5) {
++#if HAVE_OPENSSL
++            if (!EVP_DigestUpdate(res_all.res_fs.md5c, (void *)lc->str, (size_t) lc->str_len))
++               Emsg1(M_ERROR_TERM, 0, "MD5 computation failed: %s\n",
++                     ERR_reason_error_string(ERR_peek_last_error()));
++#else
+             MD5Update(&res_all.res_fs.md5c, (unsigned char *)lc->str, lc->str_len);
++#endif
+          }
+          incexe = &res_incexe;
+          if (incexe->plugin_list.size() == 0) {
+diff -up bacula-11.0.1/src/dird/job.c.orig bacula-11.0.1/src/dird/job.c
+--- bacula-11.0.1/src/dird/job.c.orig	2021-02-05 22:23:44.000000000 +0100
++++ bacula-11.0.1/src/dird/job.c	2022-02-11 19:43:38.871718095 +0100
+@@ -27,6 +27,10 @@
+ #include "bacula.h"
+ #include "dird.h"
+ 
++#if HAVE_OPENSSL
++# include <openssl/evp.h>
++#endif
++
+ /* Forward referenced subroutines */
+ static void *job_thread(void *arg);
+ static void job_monitor_watchdog(watchdog_t *self);
+@@ -1342,10 +1346,27 @@ bool get_or_create_fileset_record(JCR *j
+    memset(&fsr, 0, sizeof(FILESET_DBR));
+    bstrncpy(fsr.FileSet, jcr->fileset->hdr.name, sizeof(fsr.FileSet));
+    if (jcr->fileset->have_MD5) {
++#if HAVE_OPENSSL
++      EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
++      if (!mdctx)
++         Emsg1(M_ERROR_TERM, 0, "MD5 computation failed: %s\n",
++               ERR_reason_error_string(ERR_peek_last_error()));
++#else
+       struct MD5Context md5c;
++#endif
+       unsigned char digest[MD5HashSize];
++#if HAVE_OPENSSL
++      if (!EVP_MD_CTX_copy_ex(mdctx, jcr->fileset->md5c)
++         || !EVP_DigestFinal_ex(mdctx, digest, NULL)
++      ) {
++         Emsg1(M_ERROR_TERM, 0, "MD5 computation failed: %s\n",
++               ERR_reason_error_string(ERR_peek_last_error()));
++      }
++      EVP_MD_CTX_free(mdctx);
++#else
+       memcpy(&md5c, &jcr->fileset->md5c, sizeof(md5c));
+       MD5Final(digest, &md5c);
++#endif
+       /*
+        * Keep the flag (last arg) set to false otherwise old FileSets will
+        * get new MD5 sums and the user will get Full backups on everything
+diff -up bacula-11.0.1/src/lib/hmac.c.orig bacula-11.0.1/src/lib/hmac.c
+--- bacula-11.0.1/src/lib/hmac.c.orig	2021-02-05 22:23:44.000000000 +0100
++++ bacula-11.0.1/src/lib/hmac.c	2022-02-11 19:43:38.871718095 +0100
+@@ -26,6 +26,10 @@
+  */
+ #include "bacula.h"
+ 
++#if HAVE_OPENSSL
++# include <openssl/hmac.h>
++#endif
++
+ #define PAD_LEN 64           /* PAD length */
+ #define SIG_LEN MD5HashSize  /* MD5 digest length */
+ 
+@@ -36,6 +40,19 @@ hmac_md5(
+     uint8_t*  key,             /* pointer to authentication key */
+     int   key_len,             /* length of authentication key */
+     uint8_t  *hmac)            /* returned hmac-md5 */
++#if HAVE_OPENSSL
++{
++    if (!HMAC(
++        EVP_md5(),
++        key, key_len,
++        text, text_len,
++        hmac, NULL
++    )) {
++        Emsg0(M_ERROR_TERM, 0, "HMAC computation failed\n");
++    }
++
++}
++#else
+ {
+    MD5Context md5c;
+    uint8_t k_ipad[PAD_LEN];    /* inner padding - key XORd with ipad */
+@@ -90,6 +107,7 @@ hmac_md5(
+    MD5Update(&md5c, hmac, SIG_LEN);   /* hash inner hash */
+    MD5Final(hmac, &md5c);             /* store results */
+ }
++#endif
+ /*
+ Test Vectors (Trailing '\0' of a character string not included in test):
+ 
+diff -up bacula-11.0.1/src/lib/parse_conf.c.orig bacula-11.0.1/src/lib/parse_conf.c
+--- bacula-11.0.1/src/lib/parse_conf.c.orig	2021-02-05 22:23:44.000000000 +0100
++++ bacula-11.0.1/src/lib/parse_conf.c	2022-02-11 19:43:38.871718095 +0100
+@@ -59,6 +59,10 @@
+ #define MAX_PATH  1024
+ #endif
+ 
++#if HAVE_OPENSSL
++# include <openssl/evp.h>
++#endif
++
+ /*
+  * Define the Union of all the common resource structure definitions.
+  */
+@@ -588,7 +592,11 @@ void store_dir(LEX *lc, RES_ITEM *item,
+ void store_password(LEX *lc, RES_ITEM *item, int index, int pass)
+ {
+    unsigned int i, j;
++#if HAVE_OPENSSL
++   EVP_MD_CTX *mdctx = NULL;
++#else
+    struct MD5Context md5c;
++#endif
+    unsigned char digest[CRYPTO_DIGEST_MD5_SIZE];
+    char sig[100];
+ 
+@@ -598,9 +606,21 @@ void store_password(LEX *lc, RES_ITEM *i
+    } else {
+       lex_get_token(lc, T_STRING);
+       if (pass == 1) {
++#if HAVE_OPENSSL
++         mdctx = EVP_MD_CTX_new();
++         if (!mdctx
++            || !EVP_DigestInit_ex(mdctx, EVP_md5(), NULL)
++            || !EVP_DigestUpdate(mdctx, (const void *) lc->str, (size_t) lc->str_len)
++            || !EVP_DigestFinal_ex(mdctx, digest, NULL)
++         ) {
++            Emsg1(M_ERROR_TERM, 0, "MD5 computation failed: %s\n",
++                  ERR_reason_error_string(ERR_peek_last_error()));
++         }
++#else
+          MD5Init(&md5c);
+          MD5Update(&md5c, (unsigned char *) (lc->str), lc->str_len);
+          MD5Final(digest, &md5c);
++#endif
+          for (i = j = 0; i < sizeof(digest); i++) {
+             sprintf(&sig[j], "%02x", digest[i]);
+             j += 2;
+diff -up bacula-11.0.1/src/lib/util.c.orig bacula-11.0.1/src/lib/util.c
+--- bacula-11.0.1/src/lib/util.c.orig	2021-02-05 22:23:44.000000000 +0100
++++ bacula-11.0.1/src/lib/util.c	2022-02-11 19:43:38.872718077 +0100
+@@ -707,6 +707,35 @@ int do_shell_expansion(char *name, int n
+     from SpeakFreely by John Walker */
+ 
+ void make_session_key(char *key, char *seed, int mode)
++#if HAVE_OPENSSL
++{
++   int j, k;
++   unsigned char buf[16];
++
++   (void) seed;
++
++   if (!RAND_bytes(buf, sizeof(buf)))
++       Emsg1(M_ERROR_TERM, 0, "Random bytes generation failed: %s\n",
++             ERR_reason_error_string(ERR_peek_last_error()));
++
++   if (mode) {
++     for (j = k = 0; j < 16; j++) {
++        unsigned char rb = buf[j];
++
++#define Rad16(x) ((x) + 'A')
++        key[k++] = Rad16((rb >> 4) & 0xF);
++        key[k++] = Rad16(rb & 0xF);
++#undef Rad16
++        if (j & 1) {
++           key[k++] = '-';
++        }
++     }
++     key[--k] = 0;
++   } else {
++      memcpy(key, buf, sizeof(buf));
++   }
++}
++#else
+ {
+    int j, k;
+    struct MD5Context md5c;
+@@ -790,6 +819,7 @@ void make_session_key(char *key, char *s
+    }
+ }
+ #undef nextrand
++#endif
+ 
+ void encode_session_key(char *encode, char *session, char *key, int maxlen)
+ {

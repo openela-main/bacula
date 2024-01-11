@@ -1,0 +1,34 @@
+diff -Naur bacula-9.6.5.old/scripts/bacula-tray-monitor.desktop.in bacula-9.6.5/scripts/bacula-tray-monitor.desktop.in
+--- bacula-9.6.5.old/scripts/bacula-tray-monitor.desktop.in	2020-07-24 09:11:40.976119619 +0200
++++ bacula-9.6.5/scripts/bacula-tray-monitor.desktop.in	2020-07-24 09:16:52.055851377 +0200
+@@ -5,6 +5,5 @@
+ Exec=@sbindir@/bacula-tray-monitor -c @sysconfdir@/bacula-tray-monitor.conf
+ Terminal=false
+ Type=Application
+-Encoding=UTF-8
+ X-Desktop-File-Install-Version=0.3
+-Categories=System;Application;Utility;X-Red-Hat-Base;
++Categories=System;Utility;
+diff -Naur bacula-9.6.5.old/scripts/bat.desktop.in bacula-9.6.5/scripts/bat.desktop.in
+--- bacula-9.6.5.old/scripts/bat.desktop.in	2020-07-24 09:11:40.976119619 +0200
++++ bacula-9.6.5/scripts/bat.desktop.in	2020-07-24 09:17:21.178294361 +0200
+@@ -5,7 +5,6 @@
+ Exec=@sbindir@/bat -c @sysconfdir@/bat.conf
+ Terminal=false
+ Type=Application
+-Encoding=UTF-8
+ StartupNotify=true
+ X-Desktop-File-Install-Version=0.3
+-Categories=System;Application;Utility;X-Red-Hat-Base;
++Categories=System;Utility;
+diff -Naur bacula-9.6.5.old/scripts/Makefile.in bacula-9.6.5/scripts/Makefile.in
+--- bacula-9.6.5.old/scripts/Makefile.in	2020-07-24 09:11:40.976119619 +0200
++++ bacula-9.6.5/scripts/Makefile.in	2020-07-24 09:17:57.725850277 +0200
+@@ -67,7 +67,6 @@
+ 	   $(MV) -f ${DESTDIR}${scriptdir}/baculabackupreport ${DESTDIR}${scriptdir}/baculabackupreport.old; \
+ 	fi
+ 	$(INSTALL_SCRIPT) baculabackupreport $(DESTDIR)$(scriptdir)/baculabackupreport
+-	$(INSTALL_SCRIPT) bacula-tray-monitor.desktop $(DESTDIR)$(scriptdir)/bacula-tray-monitor.desktop
+ 	chmod 0644 $(DESTDIR)$(scriptdir)/btraceback.gdb \
+ 		   $(DESTDIR)$(scriptdir)/btraceback.dbx \
+ 		   $(DESTDIR)$(scriptdir)/btraceback.mdb
